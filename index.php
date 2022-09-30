@@ -1,7 +1,8 @@
 <?php
+header('Content-Type: application/json; charset=utf-8');
 
-$rank = $_GET['rank'] ?? null;
-switch ($rank) {
+$category = $_GET['category'] ?? null;
+switch ($category) {
     case 1:
         qs_world_university();
         break;
@@ -24,193 +25,193 @@ switch ($rank) {
 
 function qs_world_university()
 {
-    $type = $_GET['type'] ?? 'all';
-    $region = $_GET['region'] ?? 'asia';
-    $country = $_GET['country'] ?? 'Indonesia';
-    $year = $_GET['year'] ?? (date('Y') -1);
-    $base_url = "https://greenmetric.ui.ac.id/";
-
-    if ($type == 'all') {
-        $params = "rankings/overall-rankings-{$year}";
+    try {
+        $file = file_get_contents("https://www.topuniversities.com/sites/default/files/qs-rankings-data/en/3740566.txt?rillxx");
+        echo json_encode([
+            'status' => true,
+            'message' => "unirank tm",
+            'data' => json_decode($file)
+        ]);
+    } catch (Exception $e) {
+        echo json_encode([
+            'status' => false,
+            'message' => "unirank tm",
+            'data' => $e
+        ]);
     }
-    if ($type == 'region') {
-        $params = "rankings/ranking-by-region-{$year}/{$region}";
-    }
-    if ($type == 'country') {
-        $params = "rankings/ranking-by-country-{$year}/$country";
-    }
-    $curl = curl_init($base_url . $params);
-    curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
-    curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, FALSE);
-    curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
-    $page = curl_exec($curl);
-
-    if (curl_errno($curl)) {
-        echo "Scraper error: " . curl_error($curl);
-        exit;
-    }
-
-    curl_close($curl);
-    $DOM = new DOMDocument;
-    libxml_use_internal_errors(true);
-
-    if (!$DOM->loadHTML($page)) {
-        $errors = "";
-        foreach (libxml_get_errors() as $error) {
-            $errors .= $error->message . "<br/>";
-        }
-        libxml_clear_errors();
-        print "libxml errors:<br>$errors";
-        return;
-    }
-
-    $DOM->preserveWhiteSpace = false;
-    $tables = $DOM->getElementsByTagName('table');
-    $data = [];
-
-    foreach ($tables as $singleTable) {
-        try {
-            $trs = $singleTable->getElementsByTagName('tr');
-            $ths = $trs[0]->getElementsByTagName('th');
-
-            $isResultTable = FALSE;
-            foreach ($ths as $ith) {
-                if (trim($ith->textContent) === "University") {
-                    $isResultTable = TRUE;
-                }
-            }
-            if (!$isResultTable) continue;
-
-            foreach ($trs as $itrs) {
-                $td = $itrs->getElementsByTagName('td');
-                if (!empty($td[0]->textContent)) {
-                    $data[] = [
-                        'rank' => $td[0]->textContent,
-                        'university' => $td[1]->textContent,
-                        'country' => $td[2]->textContent,
-                        'total_score' => $td[3]->textContent,
-                        'setting_infrastructure' => $td[4]->textContent,
-                        'energy_climate_change' => $td[5]->textContent,
-                        'waste' => $td[6]->textContent,
-                        'water' => $td[7]->textContent,
-                        'transportation' => $td[8]->textContent,
-                        'education_research' => $td[9]->textContent,
-                    ];
-                }
-            }
-        } catch (Exception $ex) {
-            print_r($ex);
-        }
-    }
-
-    header('Content-Type: application/json; charset=utf-8');
-    echo json_encode([
-        'status' => true,
-        'message' => "greenmetric {$type} - {$year}",
-        'data' => $data
-    ]);
 }
 
 function the_wur()
 {
-    # code...
+    try {
+        $file = file_get_contents("https://www.timeshighereducation.com/sites/default/files/the_data_rankings/world_university_rankings_2022_0__e7070f0c2581be5fe6ab6392da206b36.json");
+        echo json_encode([
+            'status' => true,
+            'message' => "unirank tm",
+            'data' => json_decode($file)
+        ]);
+    } catch (Exception $e) {
+        echo json_encode([
+            'status' => false,
+            'message' => "unirank tm",
+            'data' => $e
+        ]);
+    }
 }
 
 function uni_rank_tm()
 {
-    # code...
+    try {
+        $dom = new DOMDocument;
+        $table = file_get_contents("https://www.4icu.org/id/");
+        @$dom->loadHTML($table);
+        $dom->preserveWhiteSpace = false;
+        $tables = $dom->getElementsByTagName('table');
+        $data = [];
+
+        foreach ($tables as $singleTable) {
+            $rows = $singleTable->getElementsByTagName('tr');
+            $row1 = $rows[1]->getElementsByTagName('th');
+
+            $isResultTable = FALSE;
+            foreach ($row1 as $th) {
+                if (trim($th->textContent) === 'University') {
+                    $isResultTable = TRUE;
+                }
+            }
+
+            if (!$isResultTable) continue;
+            foreach ($rows as $row) {
+                $cols = $row->getElementsByTagName('td');
+                if (!empty($cols[2]->textContent)) {
+                    $data[] = [
+                        'rank' => $cols[0]->textContent,
+                        'university' => $cols[1]->textContent,
+                        'town' => $cols[2]->textContent,
+                    ];
+                }
+            }
+        }
+
+        echo json_encode([
+            'status' => true,
+            'message' => "unirank tm",
+            'data' => $data
+        ]);
+    } catch (Exception $e) {
+        echo json_encode([
+            'status' => false,
+            'message' => "unirank tm",
+            'data' => $e
+        ]);
+    }
 }
 
 function webometrics()
 {
-    # code...
+    try {
+        $page = $_GET['page'] ?? 1;
+        $dom = new DOMDocument;
+        $table = file_get_contents("https://www.webometrics.info/en/Asia/Indonesia/?page={$page}");
+        @$dom->loadHTML($table);
+        $dom->preserveWhiteSpace = false;
+        $tables = $dom->getElementsByTagName('table');
+        $data = [];
+
+        foreach ($tables as $singleTable) {
+            $rows = $singleTable->getElementsByTagName('tr');
+            $row1 = $rows[0]->getElementsByTagName('th');
+
+            $isResultTable = FALSE;
+            foreach ($row1 as $th) {
+                if (trim($th->textContent) === 'World Rank') {
+                    $isResultTable = TRUE;
+                }
+            }
+
+            if (!$isResultTable) continue;
+            foreach ($rows as $row) {
+                $cols = $row->getElementsByTagName('td');
+                if (!empty($cols[0]->textContent)) {
+                    $data[] = [
+                        'rank' => $cols[0]->textContent,
+                        'word_rank' => $cols[1]->textContent,
+                        'university' => $cols[2]->textContent,
+                        'impact_rank' => $cols[4]->textContent,
+                        'openness_rank' => $cols[5]->textContent,
+                        'excellence_rank' => $cols[6]->textContent,
+                    ];
+                }
+            }
+        }
+
+        echo json_encode([
+            'status' => true,
+            'message' => "webometrics",
+            'data' => $data
+        ]);
+    } catch (Exception $e) {
+        echo json_encode([
+            'status' => false,
+            'message' => "webometrics",
+            'data' => $e
+        ]);
+    }
 }
 
 function ui_greenmetric()
 {
-    $type = $_GET['type'] ?? 'all';
-    $region = $_GET['region'] ?? 'asia';
-    $country = $_GET['country'] ?? 'Indonesia';
-    $year = $_GET['year'] ?? (date('Y') -1);
-    $base_url = "https://greenmetric.ui.ac.id/";
+    try {
+        $year = $_GET['year'] ?? (date('Y') - 1);
+        $base_url = "https://greenmetric.ui.ac.id/rankings/ranking-by-country-{$year}/Indonesia";
+        $dom = new DOMDocument;
+        $table = file_get_contents($base_url);
+        @$dom->loadHTML($table);
+        $dom->preserveWhiteSpace = false;
+        $tables = $dom->getElementsByTagName('table');
+        $data = [];
 
-    if ($type == 'all') {
-        $params = "rankings/overall-rankings-{$year}";
-    }
-    if ($type == 'region') {
-        $params = "rankings/ranking-by-region-{$year}/{$region}";
-    }
-    if ($type == 'country') {
-        $params = "rankings/ranking-by-country-{$year}/$country";
-    }
-    $curl = curl_init($base_url . $params);
-    curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
-    curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, FALSE);
-    curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
-    $page = curl_exec($curl);
-
-    if (curl_errno($curl)) {
-        echo "Scraper error: " . curl_error($curl);
-        exit;
-    }
-
-    curl_close($curl);
-    $DOM = new DOMDocument;
-    libxml_use_internal_errors(true);
-
-    if (!$DOM->loadHTML($page)) {
-        $errors = "";
-        foreach (libxml_get_errors() as $error) {
-            $errors .= $error->message . "<br/>";
-        }
-        libxml_clear_errors();
-        print "libxml errors:<br>$errors";
-        return;
-    }
-
-    $DOM->preserveWhiteSpace = false;
-    $tables = $DOM->getElementsByTagName('table');
-    $data = [];
-
-    foreach ($tables as $singleTable) {
-        try {
-            $trs = $singleTable->getElementsByTagName('tr');
-            $ths = $trs[0]->getElementsByTagName('th');
+        foreach ($tables as $singleTable) {
+            $rows = $singleTable->getElementsByTagName('tr');
+            $row1 = $rows[0]->getElementsByTagName('th');
 
             $isResultTable = FALSE;
-            foreach ($ths as $ith) {
-                if (trim($ith->textContent) === "University") {
+            foreach ($row1 as $th) {
+                if (trim($th->textContent) === 'University') {
                     $isResultTable = TRUE;
                 }
             }
-            if (!$isResultTable) continue;
 
-            foreach ($trs as $itrs) {
-                $td = $itrs->getElementsByTagName('td');
-                if (!empty($td[0]->textContent)) {
+            if (!$isResultTable) continue;
+            foreach ($rows as $row) {
+                $cols = $row->getElementsByTagName('td');
+                if (!empty($cols[0]->textContent)) {
                     $data[] = [
-                        'rank' => $td[0]->textContent,
-                        'university' => $td[1]->textContent,
-                        'country' => $td[2]->textContent,
-                        'total_score' => $td[3]->textContent,
-                        'setting_infrastructure' => $td[4]->textContent,
-                        'energy_climate_change' => $td[5]->textContent,
-                        'waste' => $td[6]->textContent,
-                        'water' => $td[7]->textContent,
-                        'transportation' => $td[8]->textContent,
-                        'education_research' => $td[9]->textContent,
+                        'rank' => $cols[0]->textContent,
+                        'university' => $cols[1]->textContent,
+                        'country' => $cols[2]->textContent,
+                        'total_score' => $cols[3]->textContent,
+                        'setting_infrastructure' => $cols[4]->textContent,
+                        'energy_climate_change' => $cols[5]->textContent,
+                        'waste' => $cols[6]->textContent,
+                        'water' => $cols[7]->textContent,
+                        'transportation' => $cols[8]->textContent,
+                        'education_research' => $cols[9]->textContent,
                     ];
                 }
             }
-        } catch (Exception $ex) {
-            print_r($ex);
         }
-    }
 
-    header('Content-Type: application/json; charset=utf-8');
-    echo json_encode([
-        'status' => true,
-        'message' => "greenmetric {$type} - {$year}",
-        'data' => $data
-    ]);
+        echo json_encode([
+            'status' => true,
+            'message' => "ui greenmetric",
+            'data' => $data
+        ]);
+    } catch (Exception $e) {
+        echo json_encode([
+            'status' => false,
+            'message' => "ui greenmetric",
+            'data' => $e
+        ]);
+    }
 }
